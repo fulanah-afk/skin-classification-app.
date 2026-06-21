@@ -1,116 +1,209 @@
-# 🩷 Klasifikasi Permasalahan Kulit Wajah — Aplikasi Web (SVM)
+# Klasifikasi Permasalahan Kulit Wajah Menggunakan Ekstraksi Fitur Warna dan Tekstur Berbasis Machine Learning dengan Algoritma Support Vector Machine (SVM)
 
-Aplikasi web untuk klasifikasi permasalahan kulit wajah (acne, dark spots,
-redness, pores, wrinkles, normal) menggunakan ekstraksi fitur warna (RGB,
-HSV) dan tekstur (GLCM, LBP) dengan algoritma **SVM**. Mendukung **upload
-foto** maupun **scan langsung via kamera**, dengan tampilan warna yang
-disesuaikan dengan poster (maroon + pink + cream).
+## Identitas Proyek
+
+| Keterangan | Isi |
+|---|---|
+| Mata Kuliah | Pembelajaran Mesin |
+| Topik | Klasifikasi Citra Medis / Dermatologi Komputasional |
+| Algoritma | Support Vector Machine (SVM) |
+| Anggota Kelompok | Putu Eka Febriani (E1E124013), Farid Khandra (E1E124006) |
+| Dosen Pembimbing | Rizal Adi Saputra, S.T., M.T |
 
 ---
 
-## 📁 Struktur Folder
+## 1. Latar Belakang
+
+Identifikasi permasalahan kulit wajah di kalangan kecantikan masih banyak
+dilakukan secara manual oleh tenaga ahli, sehingga membutuhkan waktu dan
+sangat bergantung pada pengalaman profesional tenaga ahli. Perkembangan
+teknologi *Machine Learning* dalam pengolahan citra digital memungkinkan
+klasifikasi kondisi kulit wajah dilakukan secara otomatis menggunakan
+fitur warna dan tekstur, sehingga menghasilkan sistem yang lebih cepat,
+objektif, dan efisien.
+
+## 2. Rumusan Masalah
+
+1. Proses mengidentifikasi kulit wajah secara manual memerlukan waktu
+   yang cukup lama.
+2. Hasil identifikasi sangat bergantung pada pengalaman tenaga ahli,
+   sehingga rawan subjektivitas.
+3. Belum banyak penelitian yang menggabungkan fitur warna dan tekstur
+   secara bersamaan untuk klasifikasi kulit wajah.
+4. Diperlukan sistem klasifikasi yang otomatis, cepat, efisien, dan
+   objektif.
+
+## 3. Tujuan Penelitian
+
+Mengembangkan sistem klasifikasi kondisi kulit wajah menggunakan fitur
+warna dan tekstur berbasis *machine learning*, serta mengimplementasikan
+algoritma **Support Vector Machine (SVM)** untuk menghasilkan model
+klasifikasi yang akurat dan dapat diakses melalui aplikasi web.
+
+## 4. Manfaat Penelitian
+
+- Membantu mengidentifikasi kondisi awal kulit wajah secara cepat.
+- Menghemat waktu dan meningkatkan efisiensi layanan di klinik
+  kecantikan.
+- Memberikan hasil yang lebih objektif dan konsisten dibanding penilaian
+  manual.
+- Dapat menjadi sistem pendukung keputusan bagi tenaga medis/kecantikan.
+
+---
+
+## 5. Dataset
+
+Dataset bersumber dari **Kaggle**, terdiri atas citra kulit wajah yang
+dikelompokkan ke dalam 6 kelas permasalahan kulit:
+
+| No | Kelas | Deskripsi |
+|----|-------|-----------|
+| 1 | `acne` | Jerawat inflamasi |
+| 2 | `dark spots` | Bintik hitam / hiperpigmentasi |
+| 3 | `Redness` | Kemerahan pada kulit |
+| 4 | `pores` | Pori-pori membesar |
+| 5 | `wrinkles` | Kerutan |
+| 6 | `normal` | Kulit normal (tidak ada masalah) |
+
+Data dibagi menjadi data *training* (untuk pelatihan model) dan data
+*testing* (untuk evaluasi performa model), dengan proporsi 80:20.
+
+## 6. Metodologi Penelitian
+
+Penelitian ini menerapkan alur metodologi sebagai berikut:
+
+```
+Input Citra Kulit Wajah
+    ↓
+Preprocessing (Resize 224×224 + Konversi Ruang Warna)
+    ↓
+Ekstraksi Fitur Warna  : RGB (Mean, Std, Histogram) + HSV (Mean, Std)
+    ↓
+Ekstraksi Fitur Tekstur: GLCM (4 arah) + LBP Histogram
+    ↓
+Feature Fusion (50 dimensi)
+    ↓
+Normalisasi (StandardScaler)
+    ↓
+Hyperparameter Tuning (GridSearchCV, 5-Fold Cross Validation)
+    ↓
+Klasifikasi SVM (kernel terbaik)
+    ↓
+Evaluasi & Visualisasi Hasil
+    ↓
+Implementasi pada Aplikasi Web (Streamlit)
+```
+
+### 6.1 Preprocessing
+
+Setiap citra masukan diubah ukurannya menjadi 224×224 piksel, kemudian
+dikonversi ke tiga ruang warna: RGB, HSV, dan *grayscale*, sebagai dasar
+ekstraksi fitur pada tahap berikutnya.
+
+### 6.2 Ekstraksi Fitur Warna (36 dimensi)
+
+- **RGB**: nilai rata-rata (*mean*) dan simpangan baku (*std*) tiap
+  kanal warna (6 fitur), serta histogram 8-bin tiap kanal (24 fitur).
+- **HSV**: nilai rata-rata dan simpangan baku tiap kanal (6 fitur).
+
+### 6.3 Ekstraksi Fitur Tekstur (14 dimensi)
+
+- **GLCM (*Gray-Level Co-occurrence Matrix*)** pada 4 arah sudut (0°,
+  45°, 90°, 135°), menghasilkan 4 properti tekstur: *contrast*,
+  *correlation*, *energy*, dan *homogeneity*.
+- **LBP (*Local Binary Pattern*)**: histogram pola tekstur lokal dengan
+  10 bin.
+
+Kedua kelompok fitur digabungkan (*feature fusion*) menjadi satu vektor
+berdimensi **50**, kemudian dinormalisasi menggunakan `StandardScaler`
+sebelum masuk ke tahap klasifikasi.
+
+### 6.4 Pelatihan Model (SVM)
+
+Model klasifikasi dilatih menggunakan algoritma **Support Vector Machine
+(SVM)**. Pencarian kombinasi *hyperparameter* terbaik (kernel, nilai C,
+dan gamma) dilakukan dengan **GridSearchCV** menggunakan skema
+**5-Fold Stratified Cross Validation**, sehingga parameter yang dipilih
+benar-benar teroptimasi secara otomatis, bukan ditentukan secara manual.
+
+### 6.5 Hasil Model Terbaik
+
+| Parameter | Nilai |
+|---|---|
+| Kernel | RBF |
+| C | 10 |
+| Gamma | scale |
+
+### 6.6 Hasil Evaluasi Model
+
+Evaluasi dilakukan pada data uji (*testing set*) yang terpisah dari data
+latih, menggunakan metrik standar klasifikasi:
+
+| Metrik Evaluasi | Nilai |
+|---|---|
+| Akurasi | 84.12% |
+| Presisi (*Macro*) | 84.46% |
+| Recall (*Macro*) | 84.17% |
+| F1-Score (*Macro*) | 84.20% |
+
+---
+
+## 7. Implementasi — Aplikasi Web
+
+Sebagai bentuk implementasi dari model yang telah dilatih, dibangun
+sebuah aplikasi web interaktif menggunakan **Streamlit**, yang
+memungkinkan pengguna melakukan klasifikasi kondisi kulit wajah secara
+langsung melalui dua cara input:
+
+1. **Upload Foto** — pengguna mengunggah gambar kulit wajah dari
+   perangkat.
+2. **Scan Langsung (Kamera)** — pengguna mengambil foto secara *real-time*
+   melalui kamera perangkat (laptop/HP).
+
+Aplikasi menampilkan hasil klasifikasi berupa kelas prediksi beserta
+tingkat keyakinan (*confidence score*) untuk masing-masing dari 6 kelas,
+sehingga hasil klasifikasi dapat dipertanggungjawabkan secara kuantitatif.
+
+Desain antarmuka aplikasi disesuaikan dengan identitas visual poster
+penelitian (warna maroon, *pink*, dan *cream*) agar konsisten dengan
+luaran akademik lain dari penelitian ini.
+
+### 7.1 Struktur Berkas Aplikasi
 
 ```
 skinapp/
-├── app.py                  # Aplikasi utama Streamlit
-├── features.py              # Pipeline ekstraksi fitur (identik dgn notebook)
-├── requirements.txt         # Daftar dependency
+├── app.py                  # Aplikasi utama (antarmuka & logika prediksi)
+├── features.py              # Pipeline ekstraksi fitur (identik dengan notebook pelatihan)
+├── requirements.txt          # Daftar pustaka (library) yang digunakan
 ├── .streamlit/
-│   └── config.toml          # Tema warna aplikasi
+│   └── config.toml            # Konfigurasi tema tampilan
 └── saved_model/
-    ├── model_svm.pkl        # ⚠️ wajib kamu tambahkan sendiri
-    ├── scaler.pkl            # ⚠️ wajib
-    ├── classes.pkl            # ⚠️ wajib
-    ├── best_params.pkl        # opsional
-    └── metrics.pkl             # opsional
+    ├── model_svm.pkl            # Model SVM hasil pelatihan
+    ├── scaler.pkl                 # Objek normalisasi (StandardScaler)
+    ├── classes.pkl                  # Daftar label kelas
+    ├── best_params.pkl                # Parameter terbaik hasil GridSearchCV
+    └── metrics.pkl                       # Ringkasan metrik evaluasi model
 ```
 
-## 1️⃣ Langkah 1 — Ambil file model dari Google Drive
+> **Catatan teknis:** Pipeline ekstraksi fitur pada `features.py` dibuat
+> identik dengan proses pada notebook pelatihan model (ukuran gambar,
+> jumlah bin histogram, dan urutan fitur), agar model yang telah dilatih
+> dapat digunakan secara konsisten saat proses inferensi pada aplikasi.
 
-Notebook training kamu menyimpan model ke:
-`/content/drive/MyDrive/saved_model/`
+### 7.2 Tautan Aplikasi
 
-Download 5 file `.pkl` dari folder tersebut, lalu **timpa** file
-`saved_model/PUT_MODEL_FILES_HERE.txt` dengan file-file itu (taruh di
-folder `saved_model/` yang sama).
+Aplikasi telah dideploy secara publik melalui Streamlit Community Cloud
+dan dapat diakses melalui tautan berikut:
 
-> File **wajib**: `model_svm.pkl`, `scaler.pkl`, `classes.pkl`
-> File **opsional** (untuk menampilkan info akurasi & parameter di
-> sidebar): `best_params.pkl`, `metrics.pkl`
+> *(isi tautan aplikasi Streamlit kamu di sini setelah deploy selesai,
+> contoh: https://skin-classification-app-xxxxx.streamlit.app)*
 
-## 2️⃣ Langkah 2 — Coba jalankan lokal (opsional, tapi disarankan)
+---
 
-```bash
-cd skinapp
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-streamlit run app.py
-```
+## 8. Batasan dan Catatan
 
-Buka `http://localhost:8501` di browser. Coba upload foto / pakai kamera
-untuk memastikan semuanya berjalan sebelum deploy online.
-
-## 3️⃣ Langkah 3 — Deploy ke Streamlit Community Cloud (gratis)
-
-1. **Buat repo GitHub baru** (boleh public/private), lalu upload seluruh
-   isi folder `skinapp/` ke repo tersebut (termasuk folder `saved_model/`
-   yang sudah berisi file `.pkl`).
-   - Catatan: pastikan ukuran total file model tidak terlalu besar
-     (umumnya model SVM + scaler hanya beberapa MB, aman untuk GitHub).
-   - Kalau pakai Git dari terminal:
-     ```bash
-     cd skinapp
-     git init
-     git add .
-     git commit -m "Deploy klasifikasi kulit wajah"
-     git branch -M main
-     git remote add origin https://github.com/USERNAME/NAMA-REPO.git
-     git push -u origin main
-     ```
-
-2. Buka **[share.streamlit.io](https://share.streamlit.io)** lalu login
-   dengan akun GitHub kamu.
-
-3. Klik **"New app"** →
-   - **Repository**: pilih repo yang baru dibuat
-   - **Branch**: `main`
-   - **Main file path**: `app.py`
-
-4. Klik **"Deploy"**. Tunggu beberapa menit sampai proses build selesai
-   (menginstall `requirements.txt`).
-
-5. Selesai! Kamu akan mendapat link publik seperti:
-   `https://nama-app-kamu.streamlit.app`
-   — link ini bisa dibuka di HP/laptop manapun, termasuk untuk **scan
-   foto langsung dari kamera HP** (browser akan minta izin akses kamera).
-
-## 🎨 Tampilan
-
-- Warna utama mengikuti poster: **maroon** (`#8c1c2b`), **pink lembut**
-  (`#e8a0ab`), dan **cream** (`#fdf6f3`) sebagai latar.
-- Ada 2 tab input: **Upload Foto** dan **Scan Langsung (Kamera)** — yang
-  kedua memakai `st.camera_input`, jadi otomatis berfungsi sebagai "live
-  scan" baik di desktop (webcam) maupun HP (kamera depan/belakang).
-- Hasil prediksi ditampilkan dengan kartu besar + bar confidence score
-  untuk setiap dari 6 kelas, mengikuti gaya visual notebook aslinya.
-
-## ⚠️ Penting — Konsistensi Pipeline Fitur
-
-File `features.py` di aplikasi ini **disalin persis** dari fungsi
-`preprocess_image`, `extract_color_features`, `extract_texture_features`,
-dan `extract_features_pipeline` pada notebook training kamu (resize
-224×224, fitur warna 36 dimensi, fitur tekstur 14 dimensi = total 50
-dimensi). Jangan diubah parameternya, karena harus identik dengan saat
-training agar `scaler` dan `model_svm` bekerja dengan benar.
-
-Jika nanti kamu retrain ulang model dengan pipeline fitur yang berbeda
-(misal ukuran gambar diganti, jumlah bin histogram diganti, dll), kamu
-harus update `features.py` di aplikasi ini juga, supaya tetap cocok
-dengan model barunya.
-
-## 🩺 Disclaimer
-
-Aplikasi ini dibuat untuk keperluan **akademik/penelitian** (tugas
-klasifikasi citra), bukan alat diagnosis medis resmi. Hasil prediksi
-tidak menggantikan konsultasi dengan dokter kulit / dermatolog.
+Sistem ini dikembangkan untuk **keperluan akademik dan penelitian**
+sebagai bentuk penerapan metode *machine learning* dalam klasifikasi
+citra kulit wajah. Hasil klasifikasi yang ditampilkan **bukan merupakan
+diagnosis medis** dan tidak dimaksudkan untuk menggantikan pemeriksaan
+oleh dokter kulit (dermatolog) maupun tenaga medis profesional lainnya.
